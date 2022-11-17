@@ -675,7 +675,13 @@ real calc_temp(real ekin, real nrdf)
 {
     if (nrdf > 0)
     {
-        return (2.0 * ekin) / (nrdf * gmx::c_boltz);
+        if(getenv("GMX_DECOUPLE_XZ")!=NULL) {                          
+                  return (2.0 * ekin) / (1 * nrdf * gmx::c_boltz / 3.);
+        }else if(getenv("GMX_DECOUPLE_X")!=NULL) {                     
+                  return (2.0 * ekin) / (2 * nrdf * gmx::c_boltz / 3.);
+        } else {                                                       
+                  return (2.0 * ekin) / (nrdf * gmx::c_boltz);         
+               }                                                       
     }
     else
     {
