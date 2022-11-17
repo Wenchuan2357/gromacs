@@ -93,8 +93,16 @@ real sum_ekin(const t_grpopts* opts, gmx_ekindata_t* ekind, real* dekindlambda, 
             }
             m_add(tcstat->ekinf, ekind->ekin, ekind->ekin);
 
-            tcstat->Th = calc_temp(trace(tcstat->ekinh), nd);
-            tcstat->T  = calc_temp(trace(tcstat->ekinf), nd);
+            if(getenv("GMX_DECOUPLE_XZ")!=NULL) {                                         
+                      tcstat->Th = calc_temp(tcstat->ekinh[1][1], nd);                    
+                      tcstat->T  = calc_temp(tcstat->ekinf[1][1], nd);                    
+            } else if(getenv("GMX_DECOUPLE_X")!=NULL) {                                   
+                      tcstat->Th = calc_temp(tcstat->ekinh[1][1]+tcstat->ekinh[2][2], nd);
+                      tcstat->T  = calc_temp(tcstat->ekinf[1][1]+tcstat->ekinf[2][2], nd);
+            } else  {                                                                     
+                      tcstat->Th = calc_temp(trace(tcstat->ekinh), nd);                   
+                      tcstat->T  = calc_temp(trace(tcstat->ekinf), nd);                   
+                   }
 
             /* after the scaling factors have been multiplied in, we can remove them */
             if (bEkinAveVel)
