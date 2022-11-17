@@ -636,10 +636,20 @@ static void updateMDLeapfrogGeneral(int                                 start,
                 dtPressureCouple * multiplyVectorByMatrix(parrinelloRahmanM, vRel);
         for (int d = 0; d < DIM; d++)
         {
-            real vNew = (lg * vRel[d]
-                         + (f[n][d] * invMassPerDim[n][d] * dt - factorNH * vRel[d]
+            real vNew=0.0;                                                                                          
+            static int test=1;                                                                                             
+            if(getenv("GMX_DECOUPLE_XZ")!=NULL && d != 1) {                                                                
+                    if (test) { printf(" **** DECOUPLING XZ TRANSLATIONAL DOF FROM THERMOSTAT ****\n\n\n\n\n\n"); test=0; }
+                    vNew = lg*vRel[d] + (f[n][d]*invMassPerDim[n][d]*dt - parrinelloRahmanScaledVelocity[d]);              
+            } else if(getenv("GMX_DECOUPLE_X")!=NULL && d == 0) {                                                          
+                    if (test) { printf(" **** DECOUPLING X TRANSLATIONAL DOF FROM THERMOSTAT ****\n\n\n\n\n\n"); test=0; } 
+                    vNew = lg*vRel[d] + (f[n][d]*invMassPerDim[n][d]*dt - parrinelloRahmanScaledVelocity[d]);              
+            }  else {                                                                                                      
+                    if (test) { printf(" **** NOT DECOUPLING !!!  ****\n\n\n\n\n\n"); test=0; }                            
+                    vNew = (lg*vRel[d] + (f[n][d]*invMassPerDim[n][d]*dt - factorNH*vRel[d]                                
                             - parrinelloRahmanScaledVelocity[d]))
                         / (1 + factorNH);
+            }
             switch (accelerationType)
             {
                 case AccelerationType::None: break;
